@@ -3,7 +3,7 @@ const cors = require("cors");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
-const mysql = require("mysql");
+const mysql = require("mysql2");
 const bcrypt = require("bcrypt");
 const app = express();
 
