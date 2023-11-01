@@ -57,23 +57,6 @@ function blobToBase64(blob) {
 
 // Rutas
 
-// obtener los productos de la tienda
-app.get('/products', (req, res) => {
-  db.query('SELECT products_id, products_name, products_description, products_price, products_blob_images FROM products', (err, results) => {
-    if (err) {
-      console.error('Error al obtener los productos:', err);
-      res.status(500).send('Error interno del servidor');
-    } else {
-      const productsWithBase64Images = results.map((product) => ({
-        ...product,
-        products_blob_images: product.products_blob_images ? product.products_blob_images.toString('base64') : null
-      }));
-      res.json(productsWithBase64Images);
-    }
-  });
-});
-
-
 // Endpoint de registro
 app.post("/register", async (req, res) => {
   const { users_name, users_email, users_password } = req.body;
@@ -97,21 +80,6 @@ app.post("/register", async (req, res) => {
     }
   });
 });
-
-// Ruta para obtener elementos del carrito desde la base de datos
-app.get('/cart', (req, res) => {
-  const sql = 'SELECT cart_product_name, cart_product_price, cart_quantity FROM cart';
-  db.query(sql, (err, results) => {
-    if (err) {
-      console.error('Error al obtener elementos del carrito:', err);
-      res.status(500).send('Error interno del servidor');
-    } else {
-      res.json(results);
-    }
-  });
-});
-
-
 
 // Endpoint de inicio de sesión
 app.post("/login", async (req, res) => {
@@ -167,6 +135,34 @@ app.get("/logout", (req, res) => {
   });
 });
 
+// Obtener los productos de la tienda
+app.get('/products', (req, res) => {
+  db.query('SELECT products_id, products_name, products_description, products_price, products_blob_images FROM products', (err, results) => {
+    if (err) {
+      console.error('Error al obtener los productos:', err);
+      res.status(500).send('Error interno del servidor');
+    } else {
+      const productsWithBase64Images = results.map((product) => ({
+        ...product,
+        products_blob_images: product.products_blob_images ? product.products_blob_images.toString('base64') : null
+      }));
+      res.json(productsWithBase64Images);
+    }
+  });
+});
+
+// Obtener elementos del carrito
+app.get('/cart', (req, res) => {
+  const sql = 'SELECT cart_product_name, cart_product_price, cart_quantity FROM cart';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error al obtener elementos del carrito:', err);
+      res.status(500).send('Error interno del servidor');
+    } else {
+      res.json(results);
+    }
+  });
+});
 
 // Ruta para agregar un producto al carrito
 app.post('/add-to-cart', (req, res) => {
@@ -204,7 +200,7 @@ app.post('/add-to-cart', (req, res) => {
   });
 });
 
-// Ruta para obtener elementos del carrito desde la base de datos
+// Obtener elementos del carrito desde la base de datos
 app.get('/cart-items', (req, res) => {
   const sql = 'SELECT cart_product_name, cart_product_price, cart_quantity, cart_id FROM cart';
   db.query(sql, (err, results) => {
@@ -217,7 +213,7 @@ app.get('/cart-items', (req, res) => {
   });
 });
 
-// Ruta para eliminar un elemento del carrito
+// Eliminar un elemento del carrito
 app.delete('/cart-items/:cartItemId', (req, res) => {
   const cartItemId = req.params.cartItemId;
   const sql = 'DELETE FROM cart WHERE cart_id = ?';
@@ -231,7 +227,7 @@ app.delete('/cart-items/:cartItemId', (req, res) => {
   });
 });
 
-// Ruta para aumentar la cantidad de un elemento en el carrito
+// Aumentar la cantidad de un elemento en el carrito
 app.put('/cart-items/increase-quantity/:cartItemId', (req, res) => {
   const cartItemId = req.params.cartItemId;
   const sql = 'UPDATE cart SET cart_quantity = cart_quantity + 1 WHERE cart_id = ?';
@@ -245,7 +241,7 @@ app.put('/cart-items/increase-quantity/:cartItemId', (req, res) => {
   });
 });
 
-// Ruta para disminuir la cantidad de un elemento en el carrito
+// Disminuir la cantidad de un elemento en el carrito
 app.put('/cart-items/decrease-quantity/:cartItemId', (req, res) => {
   const cartItemId = req.params.cartItemId;
   const sql = 'UPDATE cart SET cart_quantity = cart_quantity - 1 WHERE cart_id = ?';
@@ -258,7 +254,6 @@ app.put('/cart-items/decrease-quantity/:cartItemId', (req, res) => {
     }
   });
 });
-
 
 
 // Iniciar el servidor
