@@ -137,6 +137,16 @@ app.get("/logout", (req, res) => {
 
 // Obtener los productos de la tienda
 app.get('/products', (req, res) => {
+  if (db._closed) {
+    db.connect((err) => {
+      if (err) {
+        console.error('Error al restablecer la conexión con la base de datos:', err);
+        res.status(500).send('Error interno del servidor');
+        return;
+      }
+    });
+  }
+
   db.query('SELECT products_id, products_name, products_description, products_price, products_blob_images FROM products', (err, results) => {
     if (err) {
       console.error('Error al obtener los productos:', err);
