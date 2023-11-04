@@ -137,16 +137,25 @@ app.get("/logout", (req, res) => {
 
 // Obtener los productos de la tienda
 app.get('/products', (req, res) => {
-  if (db._closed) {
+  if (db.state === 'disconnected') {
+    // La conexión está cerrada, restablecerla
     db.connect((err) => {
       if (err) {
         console.error('Error al restablecer la conexión con la base de datos:', err);
         res.status(500).send('Error interno del servidor');
         return;
       }
-    });
-  }
 
+      // Realizar la consulta después de restablecer la conexión
+      performProductQuery(res);
+    });
+  } else {
+    // La conexión está abierta, realizar la consulta directamente
+    performProductQuery(res);
+  }
+});
+
+function performProductQuery(res) {
   db.query('SELECT products_id, products_name, products_description, products_price, products_blob_images FROM products', (err, results) => {
     if (err) {
       console.error('Error al obtener los productos:', err);
@@ -159,7 +168,7 @@ app.get('/products', (req, res) => {
       res.json(productsWithBase64Images);
     }
   });
-});
+}
 
 // Obtener elementos del carrito
 app.get('/cart', (req, res) => {
