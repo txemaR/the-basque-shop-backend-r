@@ -136,37 +136,47 @@ app.get("/logout", (req, res) => {
 });
 
 // Obtener los productos de la tienda
-app.get('/products', (req, res) => {
-  if (db.state === 'disconnected') {
-    // La conexión está cerrada, restablecerla
-    db.connect((err) => {
-      if (err) {
-        console.error('Error al restablecer la conexión con la base de datos:', err);
-        res.status(500).send('Error interno del servidor');
-        return;
-      }
+app.get('/products', async (req, res) => {
+  try {
+    await openDatabaseConnection();
 
-      // Realizar la consulta después de restablecer la conexión
-      performProductQuery(res);
-    });
-  } else {
-    // La conexión está abierta, realizar la consulta directamente
-    performProductQuery(res);
+    // Realiza la consulta después de abrir la conexión
+    const products = await performProductQuery();
+    res.json(products);
+  } catch (error) {
+    console.error('Error al obtener los productos:', error);
+    res.status(500).send('Error interno del servidor');
   }
 });
 
-function performProductQuery(res) {
-  db.query('SELECT products_id, products_name, products_description, products_price, products_blob_images FROM products', (err, results) => {
-    if (err) {
-      console.error('Error al obtener los productos:', err);
-      res.status(500).send('Error interno del servidor');
-    } else {
-      const productsWithBase64Images = results.map((product) => ({
-        ...product,
-        products_blob_images: product.products_blob_images ? product.products_blob_images.toString('base64') : null
-      }));
-      res.json(productsWithBase64Images);
-    }
+// Función para abrir la conexión a la base de datos
+function openDatabaseConnection() {
+  return new Promise((resolve, reject) => {
+    db.connect((err) => {
+      if (err) {
+        reject(err);
+      } else {
+        console.log('Conexión exitosa a la base de datos');
+        resolve();
+      }
+    });
+  });
+}
+
+// Función para realizar la consulta de productos
+function performProductQuery() {
+  return new Promise((resolve, reject) => {
+    db.query('SELECT products_id, products_name, products_description, products_price, products_blob_images FROM products', (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        const productsWithBase64Images = results.map((product) => ({
+          ...product,
+          products_blob_images: product.products_blob_images ? product.products_blob_images.toString('base64') : null
+        }));
+        resolve(productsWithBase64Images);
+      }
+    });
   });
 }
 
